@@ -1,72 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wikipedia on 3DS</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 10px;
-      background-color: #f7f7f7;
-    }
-    h1 {
-      font-size: 20px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 16px;
-    }
-    .result {
-      background: #fff;
-      padding: 10px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit on 3DS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            font-size: 20px;
+            text-align: center;
+        }
+        .post {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 8px;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>Wikipedia Search</h1>
-  <input type="text" id="searchInput" placeholder="Enter search term">
-  <button onclick="searchWikipedia()">Search</button>
-  <div id="searchResults"></div>
+    <h1>Reddit r/all - Simplified</h1>
+    <div id="posts"></div>
+    <div id="error" class="error"></div>
 
-  <script>
-    function searchWikipedia() {
-      var searchTerm = document.getElementById('searchInput').value;
-      if (!searchTerm) return;
+    <script>
+        // This function fetches posts from Reddit's API and displays them
+        function fetchRedditPosts() {
+            var apiUrl = "https://www.reddit.com/r/all/.json?limit=10"; // Fetching the top 10 posts from r/all
 
-      // URL for the Wikipedia API (uses the mobile API)
-      var apiUrl = 'https://en.m.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + encodeURIComponent(searchTerm) + '&format=json&origin=*';
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    var postsDiv = document.getElementById("posts");
+                    var errorDiv = document.getElementById("error");
 
-      fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-          var results = data.query.search;
-          var resultHTML = '';
-          if (results.length > 0) {
-            results.forEach(result => {
-              var title = result.title;
-              var snippet = result.snippet.replace(/<[^>]*>/g, ''); // Clean up HTML tags
-              resultHTML += `
-                <div class="result">
-                  <h3><a href="https://en.m.wikipedia.org/wiki/${encodeURIComponent(title)}" target="_blank">${title}</a></h3>
-                  <p>${snippet}...</p>
-                </div>
-              `;
-            });
-          } else {
-            resultHTML = '<p>No results found.</p>';
-          }
-          document.getElementById('searchResults').innerHTML = resultHTML;
-        })
-        .catch(error => {
-          document.getElementById('searchResults').innerHTML = '<p>Error fetching data.</p>';
-        });
-    }
-  </script>
+                    // Clear previous posts
+                    postsDiv.innerHTML = "";
+                    errorDiv.innerHTML = "";
+
+                    // Check if there are posts to display
+                    if (data.data && data.data.children.length > 0) {
+                        // Loop through the posts and display them
+                        data.data.children.forEach(post => {
+                            var postData = post.data;
+                            var title = postData.title;
+                            var url = "https://www.reddit.com" + postData.permalink;
+
+                            // Create a simple div to display each post title
+                            var postDiv = document.createElement("div");
+                            postDiv.classList.add("post");
+                            postDiv.innerHTML = `<a href="${url}" target="_blank">${title}</a>`;
+                            postsDiv.appendChild(postDiv);
+                        });
+                    } else {
+                        postsDiv.innerHTML = "<p>No posts available.</p>";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("error").innerHTML = "Error loading Reddit posts.";
+                    console.error("Error fetching data: ", error);
+                });
+        }
+
+        // Call the function to load Reddit posts
+        fetchRedditPosts();
+    </script>
 </body>
 </html>
