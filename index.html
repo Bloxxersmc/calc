@@ -1,18 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Wikipedia Search with Preview</title>
+    <title>Wikipedia Search for 3DS</title>
     <style>
-        .result {
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            font-size: 24px;
+        }
+        form {
             margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
             cursor: pointer;
+        }
+        .result {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
         }
         .full-article {
             display: none;
             margin-top: 10px;
             border: 1px solid #ccc;
             padding: 10px;
-            background-color: #f9f9f9;
+            background-color: #e9e9e9;
         }
     </style>
 </head>
@@ -71,7 +95,7 @@ async function searchWikipedia() {
 async function showFullArticle(title) {
     const fullArticleDiv = document.getElementById(title.replace(/\s+/g, '_'));
     if (fullArticleDiv.innerHTML) {
-        // If the article is already loaded, just toggle visibility
+        // Toggle visibility
         fullArticleDiv.style.display = fullArticleDiv.style.display === 'none' ? 'block' : 'none';
     } else {
         const apiUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${title}&format=json&origin=*`;
