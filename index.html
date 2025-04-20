@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Wikipedia Search for 3DS</title>
+    <title>Wikipedia Search for OLD 3DS</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,7 +54,7 @@
 <script>
 function searchWikipedia() {
     var searchTerm = document.getElementById("searchInput").value;
-    var apiUrl = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(searchTerm) + "&format=json&origin=*";
+    var apiUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + searchTerm + "&format=json");
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", apiUrl, true);
@@ -101,7 +101,7 @@ function showFullArticle(title) {
     if (fullArticleDiv.innerHTML !== "") {
         fullArticleDiv.style.display = (fullArticleDiv.style.display === "none") ? "block" : "none";
     } else {
-        var apiUrl = "https://en.wikipedia.org/w/api.php?action=parse&page=" + encodeURIComponent(title) + "&format=json&origin=*";
+        var apiUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://en.wikipedia.org/w/api.php?action=parse&page=" + title + "&format=json");
 
         var xhr = new XMLHttpRequest();
         xhr.open("GET", apiUrl, true);
