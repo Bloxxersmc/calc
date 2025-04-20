@@ -44,74 +44,80 @@
 
 <h1>Wikipedia Search</h1>
 
-<form id="searchForm">
+<form id="searchForm" onsubmit="searchWikipedia(); return false;">
     <input type="text" id="searchInput" name="search" placeholder="Enter search term">
-    <button type="button" onclick="searchWikipedia()">Search</button>
+    <button type="submit">Search</button>
 </form>
 
-<div id="searchResults">
-    <!-- Results will be displayed here -->
-</div>
+<div id="searchResults"></div>
 
 <script>
-async function searchWikipedia() {
-    const searchTerm = document.getElementById("searchInput").value;
-    const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchTerm}&format=json&origin=*`;
+function searchWikipedia() {
+    var searchTerm = document.getElementById("searchInput").value;
+    var apiUrl = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(searchTerm) + "&format=json&origin=*";
 
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", apiUrl, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            var searchResultsDiv = document.getElementById("searchResults");
+            searchResultsDiv.innerHTML = "";
+
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                if (data.query && data.query.search) {
+                    for (var i = 0; i < data.query.search.length; i++) {
+                        var result = data.query.search[i];
+                        var title = result.title;
+                        var snippet = result.snippet;
+
+                        var resultElement = document.createElement("div");
+                        resultElement.className = "result";
+                        resultElement.innerHTML = "<h3>" + title + "</h3><p>" + snippet + "</p><div class='full-article' id='" + title.replace(/\s+/g, '_') + "'></div>";
+
+                        // Add click handler
+                        resultElement.onclick = (function(titleCopy) {
+                            return function() {
+                                showFullArticle(titleCopy);
+                            };
+                        })(title);
+
+                        searchResultsDiv.appendChild(resultElement);
+                    }
+                } else {
+                    searchResultsDiv.innerHTML = "<p>No results found.</p>";
+                }
+            } else {
+                searchResultsDiv.innerHTML = "<p>An error occurred during the search.</p>";
+            }
         }
-        const data = await response.json();
-        const searchResultsDiv = document.getElementById("searchResults");
-        searchResultsDiv.innerHTML = ""; // Clear previous results
-
-        if (data.query && data.query.search) {
-            data.query.search.forEach(result => {
-                const title = result.title;
-                const snippet = result.snippet;
-
-                const resultElement = document.createElement("div");
-                resultElement.classList.add("result");
-                resultElement.innerHTML = `
-                    <h3>${title}</h3>
-                    <p>${snippet}</p>
-                    <div class="full-article" id="${title.replace(/\s+/g, '_')}"></div>
-                `;
-                resultElement.onclick = () => showFullArticle(title);
-                searchResultsDiv.appendChild(resultElement);
-            });
-        } else {
-            searchResultsDiv.innerHTML = "<p>No results found.</p>";
-        }
-    } catch (error) {
-        const searchResultsDiv = document.getElementById("searchResults");
-        searchResultsDiv.innerHTML = "<p>An error occurred during the search.</p>";
-        console.error("Error:", error);
-    }
+    };
+    xhr.send();
 }
 
-async function showFullArticle(title) {
-    const fullArticleDiv = document.getElementById(title.replace(/\s+/g, '_'));
-    if (fullArticleDiv.innerHTML) {
-        // Toggle visibility
-        fullArticleDiv.style.display = fullArticleDiv.style.display === 'none' ? 'block' : 'none';
+function showFullArticle(title) {
+    var id = title.replace(/\s+/g, '_');
+    var fullArticleDiv = document.getElementById(id);
+    if (fullArticleDiv.innerHTML !== "") {
+        fullArticleDiv.style.display = (fullArticleDiv.style.display === "none") ? "block" : "none";
     } else {
-        const apiUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${title}&format=json&origin=*`;
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+        var apiUrl = "https://en.wikipedia.org/w/api.php?action=parse&page=" + encodeURIComponent(title) + "&format=json&origin=*";
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", apiUrl, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    var content = data.parse && data.parse.text ? data.parse.text['*'] : "<p>No content available.</p>";
+                    fullArticleDiv.innerHTML = content;
+                    fullArticleDiv.style.display = "block";
+                } else {
+                    fullArticleDiv.innerHTML = "<p>Could not load the full article.</p>";
+                }
             }
-            const data = await response.json();
-            const content = data.parse.text['*']; // Get the HTML content
-            fullArticleDiv.innerHTML = content; // Set the content
-            fullArticleDiv.style.display = 'block'; // Show the article
-        } catch (error) {
-            fullArticleDiv.innerHTML = "<p>Could not load the full article.</p>";
-            console.error("Error:", error);
-        }
+        };
+        xhr.send();
     }
 }
 </script>
