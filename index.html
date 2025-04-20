@@ -1,84 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reddit on 3DS</title>
+    <title>Wikipedia Search for 3DS</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
-            background-color: #f4f4f4;
+            margin: 20px;
+            padding: 0;
+            background-color: #f0f0f0;
         }
         h1 {
-            font-size: 20px;
-            text-align: center;
+            font-size: 24px;
         }
-        .post {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 8px;
+        form {
+            margin-bottom: 20px;
         }
-        a {
-            color: #0066cc;
-            text-decoration: none;
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
         }
-        a:hover {
-            text-decoration: underline;
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
         }
-        .error {
-            color: red;
-            text-align: center;
+        .result {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+        .full-article {
+            display: none;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #e9e9e9;
         }
     </style>
 </head>
 <body>
-    <h1>Reddit r/all - Simplified</h1>
-    <div id="posts"></div>
-    <div id="error" class="error"></div>
 
-    <script>
-        // This function fetches posts from Reddit's API and displays them
-        function fetchRedditPosts() {
-            var apiUrl = "https://www.reddit.com/r/all/.json?limit=10"; // Fetching the top 10 posts from r/all
+<h1>Wikipedia Search</h1>
 
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    var postsDiv = document.getElementById("posts");
-                    var errorDiv = document.getElementById("error");
+<form id="searchForm">
+    <input type="text" id="searchInput" name="search" placeholder="Enter search term">
+    <button type="button" onclick="searchWikipedia()">Search</button>
+</form>
 
-                    // Clear previous posts
-                    postsDiv.innerHTML = "";
-                    errorDiv.innerHTML = "";
+<div id="searchResults">
+    <!-- Results will be displayed here -->
+</div>
 
-                    // Check if there are posts to display
-                    if (data.data && data.data.children.length > 0) {
-                        // Loop through the posts and display them
-                        data.data.children.forEach(post => {
-                            var postData = post.data;
-                            var title = postData.title;
-                            var url = "https://www.reddit.com" + postData.permalink;
+<script>
+async function searchWikipedia() {
+    const searchTerm = document.getElementById("searchInput").value;
+    const apiUrl = https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchTerm}&format=json&origin=*;
 
-                            // Create a simple div to display each post title
-                            var postDiv = document.createElement("div");
-                            postDiv.classList.add("post");
-                            postDiv.innerHTML = `<a href="${url}" target="_blank">${title}</a>`;
-                            postsDiv.appendChild(postDiv);
-                        });
-                    } else {
-                        postsDiv.innerHTML = "<p>No posts available.</p>";
-                    }
-                })
-                .catch(error => {
-                    document.getElementById("error").innerHTML = "Error loading Reddit posts.";
-                    console.error("Error fetching data: ", error);
-                });
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        const data = await response.json();
+        const searchResultsDiv = document.getElementById("searchResults");
+        searchResultsDiv.innerHTML = ""; // Clear previous results
 
-        // Call the function to load Reddit posts
-        fetchRedditPosts();
-    </script>
+        if (data.query && data.query.search) {
+            data.query.search.forEach(result => {
+                const title = result.title;
+                const snippet = result.snippet;
+
+                const resultElement = document.createElement("div");
+                resultElement.classList.add("result");
+                resultElement.innerHTML = 
+                    <h3>${title}</h3>
+                    <p>${snippet}</p>
+                    <div class="full-article" id="${title.replace(/\s+/g, '_')}"></div>
+                ;
+                resultElement.onclick = () => showFullArticle(title);
+                searchResultsDiv.appendChild(resultElement);
+            });
+        } else {
+            searchResultsDiv.innerHTML = "<p>No results found.</p>";
+        }
+    } catch (error) {
+        const searchResultsDiv = document.getElementById("searchResults");
+        searchResultsDiv.innerHTML = "<p>An error occurred during the search.</p>";
+        console.error("Error:", error);
+    }
+}
+
+async function showFullArticle(title) {
+    const fullArticleDiv = document.getElementById(title.replace(/\s+/g, '_'));
+    if (fullArticleDiv.innerHTML) {
+        // Toggle visibility
+        fullArticleDiv.style.display = fullArticleDiv.style.display === 'none' ? 'block' : 'none';
+    } else {
+        const apiUrl = https://en.wikipedia.org/w/api.php?action=parse&page=${title}&format=json&origin=*;
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            const content = data.parse.text['*']; // Get the HTML content
+            fullArticleDiv.innerHTML = content; // Set the content
+            fullArticleDiv.style.display = 'block'; // Show the article
+        } catch (error) {
+            fullArticleDiv.innerHTML = "<p>Could not load the full article.</p>";
+            console.error("Error:", error);
+        }
+    }
+}
+</script>
+
 </body>
 </html>
