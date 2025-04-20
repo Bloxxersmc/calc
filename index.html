@@ -1,126 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Wikipedia Search for OLD 3DS</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-            background-color: #f0f0f0;
-        }
-        h1 {
-            font-size: 24px;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-        }
-        button {
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .result {
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-        }
-        .full-article {
-            display: none;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            background-color: #e9e9e9;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wikipedia on 3DS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background-color: #f7f7f7;
+    }
+    h1 {
+      font-size: 20px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    .result {
+      background: #fff;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 <body>
+  <h1>Wikipedia Search</h1>
+  <input type="text" id="searchInput" placeholder="Enter search term">
+  <button onclick="searchWikipedia()">Search</button>
+  <div id="searchResults"></div>
 
-<h1>Wikipedia Search</h1>
+  <script>
+    function searchWikipedia() {
+      var searchTerm = document.getElementById('searchInput').value;
+      if (!searchTerm) return;
 
-<form id="searchForm" onsubmit="searchWikipedia(); return false;">
-    <input type="text" id="searchInput" name="search" placeholder="Enter search term">
-    <button type="submit">Search</button>
-</form>
+      // URL for the Wikipedia API (uses the mobile API)
+      var apiUrl = 'https://en.m.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + encodeURIComponent(searchTerm) + '&format=json&origin=*';
 
-<div id="searchResults"></div>
-
-<script>
-function searchWikipedia() {
-    var searchTerm = document.getElementById("searchInput").value;
-    var apiUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + searchTerm + "&format=json");
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", apiUrl, true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            var searchResultsDiv = document.getElementById("searchResults");
-            searchResultsDiv.innerHTML = "";
-
-            if (xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                if (data.query && data.query.search) {
-                    for (var i = 0; i < data.query.search.length; i++) {
-                        var result = data.query.search[i];
-                        var title = result.title;
-                        var snippet = result.snippet;
-
-                        var resultElement = document.createElement("div");
-                        resultElement.className = "result";
-                        resultElement.innerHTML = "<h3>" + title + "</h3><p>" + snippet + "</p><div class='full-article' id='" + title.replace(/\s+/g, '_') + "'></div>";
-
-                        // Add click handler
-                        resultElement.onclick = (function(titleCopy) {
-                            return function() {
-                                showFullArticle(titleCopy);
-                            };
-                        })(title);
-
-                        searchResultsDiv.appendChild(resultElement);
-                    }
-                } else {
-                    searchResultsDiv.innerHTML = "<p>No results found.</p>";
-                }
-            } else {
-                searchResultsDiv.innerHTML = "<p>An error occurred during the search.</p>";
-            }
-        }
-    };
-    xhr.send();
-}
-
-function showFullArticle(title) {
-    var id = title.replace(/\s+/g, '_');
-    var fullArticleDiv = document.getElementById(id);
-    if (fullArticleDiv.innerHTML !== "") {
-        fullArticleDiv.style.display = (fullArticleDiv.style.display === "none") ? "block" : "none";
-    } else {
-        var apiUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://en.wikipedia.org/w/api.php?action=parse&page=" + title + "&format=json");
-
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", apiUrl, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    var data = JSON.parse(xhr.responseText);
-                    var content = data.parse && data.parse.text ? data.parse.text['*'] : "<p>No content available.</p>";
-                    fullArticleDiv.innerHTML = content;
-                    fullArticleDiv.style.display = "block";
-                } else {
-                    fullArticleDiv.innerHTML = "<p>Could not load the full article.</p>";
-                }
-            }
-        };
-        xhr.send();
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          var results = data.query.search;
+          var resultHTML = '';
+          if (results.length > 0) {
+            results.forEach(result => {
+              var title = result.title;
+              var snippet = result.snippet.replace(/<[^>]*>/g, ''); // Clean up HTML tags
+              resultHTML += `
+                <div class="result">
+                  <h3><a href="https://en.m.wikipedia.org/wiki/${encodeURIComponent(title)}" target="_blank">${title}</a></h3>
+                  <p>${snippet}...</p>
+                </div>
+              `;
+            });
+          } else {
+            resultHTML = '<p>No results found.</p>';
+          }
+          document.getElementById('searchResults').innerHTML = resultHTML;
+        })
+        .catch(error => {
+          document.getElementById('searchResults').innerHTML = '<p>Error fetching data.</p>';
+        });
     }
-}
-</script>
-
+  </script>
 </body>
 </html>
