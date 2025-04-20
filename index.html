@@ -1,7 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Wikipedia Search</title>
+    <title>Wikipedia Search with Preview</title>
+    <style>
+        .result {
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .full-article {
+            display: none;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+    </style>
 </head>
 <body>
 
@@ -23,6 +36,9 @@ async function searchWikipedia() {
 
     try {
         const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
         const data = await response.json();
         const searchResultsDiv = document.getElementById("searchResults");
         searchResultsDiv.innerHTML = ""; // Clear previous results
@@ -30,13 +46,16 @@ async function searchWikipedia() {
         if (data.query && data.query.search) {
             data.query.search.forEach(result => {
                 const title = result.title;
-                const snippet = result.snippet; // This is HTML, so be careful!
+                const snippet = result.snippet;
 
                 const resultElement = document.createElement("div");
+                resultElement.classList.add("result");
                 resultElement.innerHTML = `
                     <h3>${title}</h3>
                     <p>${snippet}</p>
+                    <div class="full-article" id="${title.replace(/\s+/g, '_')}"></div>
                 `;
+                resultElement.onclick = () => showFullArticle(title);
                 searchResultsDiv.appendChild(resultElement);
             });
         } else {
@@ -46,6 +65,29 @@ async function searchWikipedia() {
         const searchResultsDiv = document.getElementById("searchResults");
         searchResultsDiv.innerHTML = "<p>An error occurred during the search.</p>";
         console.error("Error:", error);
+    }
+}
+
+async function showFullArticle(title) {
+    const fullArticleDiv = document.getElementById(title.replace(/\s+/g, '_'));
+    if (fullArticleDiv.innerHTML) {
+        // If the article is already loaded, just toggle visibility
+        fullArticleDiv.style.display = fullArticleDiv.style.display === 'none' ? 'block' : 'none';
+    } else {
+        const apiUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${title}&format=json&origin=*`;
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            const content = data.parse.text['*']; // Get the HTML content
+            fullArticleDiv.innerHTML = content; // Set the content
+            fullArticleDiv.style.display = 'block'; // Show the article
+        } catch (error) {
+            fullArticleDiv.innerHTML = "<p>Could not load the full article.</p>";
+            console.error("Error:", error);
+        }
     }
 }
 </script>
