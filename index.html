@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced iPad-style Scientific Calculator</title>
+    <title>Scientific Calculator</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -18,7 +18,7 @@
 
         .calculator {
             width: 100%;
-            max-width: 320px; /* For small screens like 3DS */
+            max-width: 400px; /* Maximum width for better readability */
             background-color: #ffffff;
             border-radius: 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -81,11 +81,6 @@
             color: white;
         }
 
-        .memory-btn {
-            background-color: #2196F3;
-            color: white;
-        }
-
         .function-btn {
             background-color: #9C27B0;
             color: white;
@@ -98,14 +93,38 @@
             margin-bottom: 5px;
         }
 
+        /* Scientific functions (initially hidden in Basic mode) */
+        .scientific {
+            display: none;
+        }
+
+        .toggle-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+
     </style>
 </head>
 <body>
 
 <div class="calculator">
+    <button class="toggle-btn" id="toggleMode">Switch to Scientific Mode</button>
+
     <div class="display" id="display">0</div>
 
-    <div class="button-row">
+    <!-- Basic Mode Buttons -->
+    <div class="button-row" id="basic-buttons">
         <button class="clear-btn" onclick="clearDisplay()">C</button>
         <button onclick="appendToDisplay('(')">(</button>
         <button onclick="appendToDisplay(')')">)</button>
@@ -137,35 +156,35 @@
         <button onclick="appendToDisplay('0')">0</button>
         <button onclick="appendToDisplay('.')">.</button>
         <button onclick="calculateResult()" class="equal-btn">=</button>
-        <button onclick="appendToDisplay('sqrt(')">√</button>
     </div>
 
-    <div class="button-row">
+    <!-- Scientific Mode Buttons -->
+    <div class="button-row scientific" id="scientific-buttons">
+        <button onclick="appendToDisplay('sqrt(')">√</button>
         <button onclick="appendToDisplay('sin(')">sin</button>
         <button onclick="appendToDisplay('cos(')">cos</button>
         <button onclick="appendToDisplay('tan(')">tan</button>
-        <button onclick="appendToDisplay('log(')">log</button>
     </div>
 
-    <div class="button-row">
+    <div class="button-row scientific">
+        <button onclick="appendToDisplay('log(')">log</button>
         <button onclick="appendToDisplay('ln(')">ln</button>
         <button onclick="appendToDisplay('x^2')">x²</button>
         <button onclick="appendToDisplay('x^3')">x³</button>
-        <button onclick="appendToDisplay('1/x')">1/x</button>
     </div>
 
-    <div class="button-row">
+    <div class="button-row scientific">
+        <button onclick="appendToDisplay('1/x')">1/x</button>
         <button onclick="appendToDisplay('x')">x</button>
         <button onclick="appendToDisplay('y')">y</button>
         <button onclick="appendToDisplay('z')">z</button>
-        <button onclick="appendToDisplay('x/y')">x/y</button>
     </div>
 </div>
 
 <script>
     let variables = { x: 0, y: 0, z: 0 };  // Store variables x, y, z
     let display = document.getElementById('display');
-    let memory = 0;
+    let isScientificMode = false;
 
     // Append value to the display
     function appendToDisplay(value) {
@@ -190,11 +209,6 @@
                                .replace(/y/g, variables.y)
                                .replace(/z/g, variables.z);
 
-        // Handle fractions like 2/3
-        expression = expression.replace(/(\d+)\/(\d+)/g, (match, p1, p2) => {
-            return parseFloat(p1) / parseFloat(p2);
-        });
-
         try {
             // Evaluate the mathematical expression
             display.innerText = eval(expression.replace('sqrt', 'Math.sqrt').replace('sin', 'Math.sin').replace('cos', 'Math.cos').replace('tan', 'Math.tan').replace('log', 'Math.log10').replace('ln', 'Math.log'));
@@ -203,6 +217,21 @@
         }
     }
 
+    // Toggle between basic and scientific mode
+    document.getElementById('toggleMode').addEventListener('click', function() {
+        isScientificMode = !isScientificMode;
+        const toggleButton = document.getElementById('toggleMode');
+
+        if (isScientificMode) {
+            document.getElementById('scientific-buttons').style.display = 'flex';
+            document.getElementById('basic-buttons').style.display = 'none';
+            toggleButton.innerText = 'Switch to Basic Mode';
+        } else {
+            document.getElementById('scientific-buttons').style.display = 'none';
+            document.getElementById('basic-buttons').style.display = 'flex';
+            toggleButton.innerText = 'Switch to Scientific Mode';
+        }
+    });
 </script>
 
 </body>
