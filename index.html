@@ -72,8 +72,8 @@
 </div>
 
 <script>
-    const apiUrl = 'https://api.groq.ai/v1/ai/chat'; // Replace with the actual GROQ AI API endpoint
-    const apiKey = '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'; // Add your GROQ AI API key here
+    const apiUrl = 'https://api.groq.ai/v1/ai/chat'; // Ensure this is the correct endpoint for the chat API
+    const apiKey = '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'; // Replace with your valid API key
 
     // Function to fetch response from the GROQ AI API using XMLHttpRequest
     function getAIResponse(userInput) {
@@ -83,18 +83,22 @@
         xhr.setRequestHeader('Authorization', 'Bearer ' + apiKey);
 
         xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                const aiResponse = response.choices[0].text.trim(); // Assuming response format
-                displayMessage(aiResponse, 'ai');
-            } else if (xhr.readyState === 4) {
-                displayMessage('Sorry, there was an error processing your request.', 'ai');
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    console.log('API Response:', response); // Log full response for debugging
+                    const aiResponse = response.choices[0].text.trim(); // Assuming response format
+                    displayMessage(aiResponse, 'ai');
+                } else {
+                    console.error('Error:', xhr.status, xhr.responseText); // Log errors to the console
+                    displayMessage('Sorry, there was an error processing your request.', 'ai');
+                }
             }
         };
 
         const data = JSON.stringify({
             prompt: userInput,
-            max_tokens: 10000, // Adjust as needed
+            max_tokens: 100, // Adjust as needed
             temperature: 0.7 // Adjust creativity
         });
 
