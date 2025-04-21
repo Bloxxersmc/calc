@@ -72,37 +72,51 @@
 </div>
 
 <script>
-    const apiUrl = 'https://api.groq.com/openai/v1/chat/completions'; // Ensure this is the correct endpoint for the chat API
-    const apiKey = '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'; // Replace with your valid API key
+    // The correct API URL and API Key (ensure you're using your correct key)
+    const apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+    const apiKey = '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';  // Replace with your actual API key
 
-    // Function to fetch response from the GROQ AI API using XMLHttpRequest
+    // Function to fetch response from the API
     function getAIResponse(userInput) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', apiUrl, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('Authorization', 'Bearer ' + apiKey);
-
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    console.log('API Response:', response); // Log full response for debugging
-                    const aiResponse = response.choices[0].text.trim(); // Assuming response format
-                    displayMessage(aiResponse, 'ai');
-                } else {
-                    console.error('Error:', xhr.status, xhr.responseText); // Log errors to the console
-                    displayMessage('Sorry, there was an error processing your request.', 'ai');
-                }
-            }
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey
         };
 
-        const data = JSON.stringify({
-            prompt: userInput,
-            max_tokens: 100, // Adjust as needed
-            temperature: 0.7 // Adjust creativity
+        const body = JSON.stringify({
+            messages: [{
+                role: 'user',
+                content: userInput,
+            }],
+            model: 'llama-3.3-70b-versatile',  // Replace with the model you wish to use
         });
 
-        xhr.send(data);
+        // Make the request to the API
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: headers,
+            body: body,
+        })
+        .then(response => {
+            console.log('Response Status:', response.status);  // Log status code for debugging
+            if (!response.ok) {
+                throw new Error('Failed to fetch: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('API Response:', data);  // Log the full API response for debugging
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                const aiResponse = data.choices[0].message.content;
+                displayMessage(aiResponse, 'ai');
+            } else {
+                throw new Error('Unexpected response format');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);  // Log the error
+            displayMessage('Sorry, there was an error processing your request.', 'ai');
+        });
     }
 
     // Function to handle the sending of a message
@@ -119,7 +133,7 @@
         // Clear the input field
         document.getElementById('userInput').value = '';
 
-        // Get response from the GROQ AI API
+        // Get response from the API
         getAIResponse(userInput);
     }
 
