@@ -3,151 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with GROQ AI</title>
+    <title>Advanced 3DS Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            background-color: #f0f4f8;
+            color: #333;
         }
-        .chat-container {
-            width: 300px;
-            height: 500px;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 10px;
+
+        .calculator {
+            width: 100%;
+            max-width: 320px; /* Fits the small 3DS screen */
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            box-sizing: border-box;
         }
-        .messages {
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-        .message {
-            background-color: #e0f7fa;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-        }
-        .input-container {
-            display: flex;
-            justify-content: space-between;
-            padding-top: 10px;
-        }
-        .input-container input {
-            width: 80%;
-            padding: 5px;
-            border-radius: 3px;
-            border: 1px solid #ccc;
-        }
-        .input-container button {
-            padding: 5px 10px;
-            background-color: #007bff;
+
+        .display {
+            width: 100%;
+            height: 60px;
+            background-color: #333;
             color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
+            font-size: 24px;
+            text-align: right;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
         }
-        .input-container button:hover {
-            background-color: #0056b3;
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 22%;
+            padding: 20px;
+            margin: 5px;
+            font-size: 18px;
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+        }
+
+        button:active {
+            background-color: #ccc;
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        .equal-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .clear-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .memory-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .variable-btn {
+            background-color: #9C27B0;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-<div class="chat-container">
-    <div class="messages" id="messages">
-        <!-- Messages will be inserted here -->
+<div class="calculator">
+    <div class="display" id="display">0</div>
+    <div class="button-row">
+        <button onclick="clearDisplay()" class="clear-btn">C</button>
+        <button onclick="appendToDisplay('(')">(</button>
+        <button onclick="appendToDisplay(')')">)</button>
+        <button onclick="appendToDisplay('/')">/</button>
     </div>
-
-    <div class="input-container">
-        <input type="text" id="userInput" placeholder="Type your message..." />
-        <button onclick="sendMessage()">Send</button>
+    <div class="button-row">
+        <button onclick="appendToDisplay('7')">7</button>
+        <button onclick="appendToDisplay('8')">8</button>
+        <button onclick="appendToDisplay('9')">9</button>
+        <button onclick="appendToDisplay('*')">*</button>
+    </div>
+    <div class="button-row">
+        <button onclick="appendToDisplay('4')">4</button>
+        <button onclick="appendToDisplay('5')">5</button>
+        <button onclick="appendToDisplay('6')">6</button>
+        <button onclick="appendToDisplay('-')">-</button>
+    </div>
+    <div class="button-row">
+        <button onclick="appendToDisplay('1')">1</button>
+        <button onclick="appendToDisplay('2')">2</button>
+        <button onclick="appendToDisplay('3')">3</button>
+        <button onclick="appendToDisplay('+')">+</button>
+    </div>
+    <div class="button-row">
+        <button onclick="appendToDisplay('0')">0</button>
+        <button onclick="appendToDisplay('.')">.</button>
+        <button onclick="calculateResult()" class="equal-btn">=</button>
+        <button onclick="appendToDisplay('sqrt(')">√</button>
+    </div>
+    <div class="button-row">
+        <button onclick="appendToDisplay('sin(')">sin</button>
+        <button onclick="appendToDisplay('cos(')">cos</button>
+        <button onclick="appendToDisplay('tan(')">tan</button>
+        <button onclick="appendToDisplay('log(')">log</button>
+    </div>
+    <div class="button-row">
+        <button onclick="appendToDisplay('ln(')">ln</button>
+        <button onclick="appendToDisplay('x^2')">x²</button>
+        <button onclick="appendToDisplay('x^3')">x³</button>
+        <button onclick="appendToDisplay('1/x')">1/x</button>
+    </div>
+    <div class="button-row">
+        <button onclick="appendToDisplay('x')">x</button>
+        <button onclick="appendToDisplay('y')">y</button>
+        <button onclick="appendToDisplay('z')">z</button>
+        <button onclick="appendToDisplay('x/y')">x/y</button>
+    </div>
+    <div class="button-row">
+        <button onclick="storeVariable('x')">MS (x)</button>
+        <button onclick="storeVariable('y')">MS (y)</button>
+        <button onclick="memoryRecall()">MR</button>
+        <button onclick="clearMemory()">MC</button>
     </div>
 </div>
 
 <script>
-    // The correct API URL and API Key (ensure you're using your correct key)
-    const apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-    const apiKey = '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';  // Replace with your actual API key
+    let variables = { x: 0, y: 0, z: 0 };  // Store variables x, y, z
+    let display = document.getElementById('display');
+    let memory = 0;
 
-    // Function to fetch response from the API
-    function getAIResponse(userInput) {
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + apiKey
-        };
-
-        const body = JSON.stringify({
-            messages: [{
-                role: 'user',
-                content: userInput,
-            }],
-            model: 'llama-3.3-70b-versatile',  // Replace with the model you wish to use
-        });
-
-        // Make the request to the API
-        fetch(apiUrl, {
-            method: 'POST',
-            headers: headers,
-            body: body,
-        })
-        .then(response => {
-            console.log('Response Status:', response.status);  // Log status code for debugging
-            if (!response.ok) {
-                throw new Error('Failed to fetch: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('API Response:', data);  // Log the full API response for debugging
-            if (data.choices && data.choices[0] && data.choices[0].message) {
-                const aiResponse = data.choices[0].message.content;
-                displayMessage(aiResponse, 'ai');
-            } else {
-                throw new Error('Unexpected response format');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);  // Log the error
-            displayMessage('Sorry, there was an error processing your request.', 'ai');
-        });
-    }
-
-    // Function to handle the sending of a message
-    function sendMessage() {
-        const userInput = document.getElementById('userInput').value;
-
-        if (userInput.trim() === '') {
-            return; // Do nothing if the input is empty
+    // Append value to the display
+    function appendToDisplay(value) {
+        if (display.innerText === '0') {
+            display.innerText = value;
+        } else {
+            display.innerText += value;
         }
-
-        // Display the user's message in the chat
-        displayMessage(userInput, 'user');
-
-        // Clear the input field
-        document.getElementById('userInput').value = '';
-
-        // Get response from the API
-        getAIResponse(userInput);
     }
 
-    // Function to display messages in the chat
-    function displayMessage(message, sender) {
-        const messagesContainer = document.getElementById('messages');
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message');
-        messageDiv.textContent = message;
-        messageDiv.classList.add(sender); // Add class based on sender (user/ai)
-        messagesContainer.appendChild(messageDiv);
+    // Clear the display
+    function clearDisplay() {
+        display.innerText = '0';
+    }
 
-        // Scroll to the bottom to show the latest message
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // Calculate the result of the expression
+    function calculateResult() {
+        let expression = display.innerText;
+
+        // Replace variable references with actual values
+        expression = expression.replace(/x/g, variables.x)
+                               .replace(/y/g, variables.y)
+                               .replace(/z/g, variables.z);
+        
+        // Handle fractions like 2/3
+        expression = expression.replace(/(\d+)\/(\d+)/g, (match, p1, p2) => {
+            return parseFloat(p1) / parseFloat(p2);
+        });
+
+        try {
+            // Evaluate the mathematical expression
+            display.innerText = eval(expression.replace('sqrt', 'Math.sqrt').replace('sin', 'Math.sin').replace('cos', 'Math.cos').replace('tan', 'Math.tan').replace('log', 'Math.log10').replace('ln', 'Math.log'));
+        } catch (error) {
+            display.innerText = 'Error';
+        }
+    }
+
+    // Store variable in memory
+    function storeVariable(variable) {
+        let value = display.innerText;
+        if (!isNaN(value)) {
+            variables[variable] = parseFloat(value);
+            clearDisplay();
+        }
+    }
+
+    // Recall the value of a variable
+    function memoryRecall() {
+        display.innerText = variables.x;
+    }
+
+    // Clear all stored variables
+    function clearMemory() {
+        variables = { x: 0, y: 0, z: 0 };
+        clearDisplay();
     }
 </script>
 
